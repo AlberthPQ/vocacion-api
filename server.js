@@ -10,15 +10,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Conexión MySQL
+// Conexión MySQL (Railway)
 const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT
+  host: process.env.MYSQLHOST,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
+  port: process.env.MYSQLPORT
 });
-
 
 db.connect(err => {
   if (err) {
@@ -87,15 +86,14 @@ app.get("/carreras/:id_institucion", (req, res) => {
   });
 });
 
-// Match de carreras según dimensiones RIASEC (2 dimensiones)
+// Match de carreras según dimensiones RIASEC (varias letras)
 app.get("/match_riasec", (req, res) => {
   const { code } = req.query;
 
-  if (!code || code.length < 1) {
+  if (!code || code.length < 1)
     return res.status(400).json({ error: "Código RIASEC inválido" });
-  }
 
-  const letras = code.toUpperCase().split(""); // Ej: ["C","R","I"]
+  const letras = code.toUpperCase().split("");
 
   const query = `
     (
@@ -131,7 +129,6 @@ app.get("/match_riasec", (req, res) => {
     );
   `;
 
-  // Usamos las letras 2 veces (para Universidad y para Instituto)
   const params = [...letras, ...letras];
 
   db.query(query, params, (err, data) => {
@@ -140,13 +137,7 @@ app.get("/match_riasec", (req, res) => {
   });
 });
 
-
-
-
-
-
-
-// Match de carreras según dimensión dominante
+// Match por dimensión dominante
 app.get("/match/:dimension", async (req, res) => {
   const dimension = req.params.dimension.toUpperCase();
 
@@ -162,7 +153,7 @@ app.get("/match/:dimension", async (req, res) => {
   }
 });
 
-// Función que obtiene sugerencias de la base de datos según dimensión
+// Función que obtiene sugerencias según dimensión
 function obtenerSugerenciasPorDimension(dimension) {
   return new Promise((resolve, reject) => {
     const query = `
