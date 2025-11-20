@@ -10,16 +10,37 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Conexión MySQL (Railway)
-const db = mysql.createConnection({
-  host: process.env.MYSQLHOST,
-  user: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
-  port: process.env.MYSQLPORT
+// ===== DEPURACIÓN: Ver qué variables está usando =====
+app.get("/debug-db", (req, res) => {
+  res.json({
+    MYSQLHOST: process.env.MYSQLHOST,
+    MYSQLUSER: process.env.MYSQLUSER,
+    MYSQLPASSWORD: process.env.MYSQLPASSWORD,
+    MYSQLDATABASE: process.env.MYSQLDATABASE,
+    MYSQLPORT: process.env.MYSQLPORT,
+  });
 });
 
+// ====== CONFIGURACIÓN MYSQL (corrigida) ======
+const db = mysql.createConnection({
+  host: process.env.MYSQLHOST?.trim(),
+  user: process.env.MYSQLUSER?.trim(),
+  password: process.env.MYSQLPASSWORD?.trim(),
+  database: process.env.MYSQLDATABASE?.trim(),
+  port: Number(process.env.MYSQLPORT), // debe ser número
+  connectTimeout: 20000
+});
+
+// Conectar MySQL
 db.connect(err => {
+  console.log("🔍 Intentando conectar con:");
+  console.log({
+    host: process.env.MYSQLHOST,
+    user: process.env.MYSQLUSER,
+    database: process.env.MYSQLDATABASE,
+    port: process.env.MYSQLPORT
+  });
+
   if (err) {
     console.error("❌ Error conectando a MySQL:", err);
     return;
